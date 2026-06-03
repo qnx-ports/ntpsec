@@ -251,7 +251,10 @@ def configure(ctx):
 
     # These are required by various refclocks
     # needs to be tested before CFLAGS are set
-    if ctx.check_endianness() == "big":
+    if "nto-qnx" in ctx.env.CC[0]:
+        ctx.msg("Checking for endianness", "little endian (QNX forced)")
+        ctx.define("WORDS_BIGENDIAN", 0)
+    elif ctx.check_endianness() == "big":
         ctx.define("WORDS_BIGENDIAN", 1)
 
     if ctx.options.enable_leap_testing:
@@ -578,7 +581,7 @@ int main(int argc, char **argv) {
     structures = (
         ("struct if_laddrconf", ["sys/types.h", "net/if6.h"], False),
         ("struct if_laddrreq", ["sys/types.h", "net/if6.h"], False),
-        ("struct timex", ["sys/time.h", "sys/timex.h"], True),
+        ("struct timex", ["sys/time.h", "sys/timex.h"], False),
         ("struct ntptimeval", ["sys/time.h", "sys/timex.h"], False),
     )
     for (s, h, r) in structures:
@@ -613,9 +616,16 @@ int main(int argc, char **argv) {
         ("time.h",      "time_t"),
         (None,          "long"),
     ]
-
-    for header, sizeof in sorted(sizeofs, key=lambda x: x[1:]):
-        check_sizeof(ctx, header, sizeof)
+    # QNX cross-compilation cannot execute probe binaries.
+    # Force known datatype sizes.
+    if "nto-qnx" in ctx.env.CC[0]:
+        ctx.define("NTP_SIZEOF_LONG", 8)
+        ctx.define("NTP_SIZEOF_TIME_T", 8)
+        ctx.define("NTP_SIZEOF_STRUCT_TIMESPEC", 16)
+        ctx.define("NTP_SIZEOF_STRUCT_TIMEVAL", 16)
+    else:
+        for header, sizeof in sorted(sizeofs, key=lambda x: x[1:]):
+            check_sizeof(ctx, header, sizeof)
 
     check_timex(ctx)
 

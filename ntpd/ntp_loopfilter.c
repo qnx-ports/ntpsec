@@ -131,13 +131,17 @@ static void set_freq(double);	/* set frequency */
 static char relative_path[PATH_MAX + 1]; /* relative path per recursive make */
 static char *this_file = NULL;
 
+#ifdef HAVE_STRUCT_TIMEX 
 static struct timex ntv;	/* ntp_adjtime() parameters */
 static int	pll_status;	/* last kernel status bits */
+#endif
 #if defined(STA_NANO) && defined(NTP_API) && NTP_API == 4
 static unsigned int loop_tai;	/* last TAI offset (non-lockclock case only) */
 #endif /* STA_NANO */
+#ifdef HAVE_STRUCT_TIMEX  
 static	void	start_kern_loop(void);
 static	void	stop_kern_loop(void);
+#endif
 
 /*
  * Clock state machine control flags
@@ -154,7 +158,9 @@ struct clock_control_flags clock_ctl = {
 int	freq_cnt;		/* initial frequency clamp */
 
 static int freq_set;		/* initial set frequency switch */
+#ifdef HAVE_STRUCT_TIMEX
 static bool	ext_enable;	/* external clock enabled */
+#endif
 
 /*
  * Clock state machine variables
@@ -172,6 +178,7 @@ static int sys_hufflen;		/* huff-n'-puff filter stages */
 static int sys_huffptr;		/* huff-n'-puff filter pointer */
 static double sys_mindly;	/* huff-n'-puff filter min delay */
 
+#ifdef HAVE_STRUCT_TIMEX 
 /* Emacs cc-mode goes nuts if we split the next line... */
 #define MOD_BITS (MOD_OFFSET | MOD_MAXERROR | MOD_ESTERROR | \
     MOD_STATUS | MOD_TIMECONST)
@@ -199,6 +206,7 @@ static char *file_name(void) {
 	}
 	return this_file;
 }
+#endif
 
 /*
  * init_loopfilter - initialize loop filter data
@@ -216,6 +224,7 @@ init_loopfilter(void) {
 /*
  * ntp_adjtime_error_handler - process errors from ntp_adjtime
  */
+#ifdef HAVE_STRUCT_TIMEX
 static void
 ntp_adjtime_error_handler(
 	const char *caller,	/* name of calling function */
@@ -411,7 +420,7 @@ or, from ntp_adjtime():
 	}
 	return;
 }
-
+#endif
 /*
  * local_clock - the NTP logical clock loop filter.
  *
@@ -444,7 +453,9 @@ local_clock(
 
 	int	rval;		/* return code */
 	int	osys_poll;	/* old system poll */
+	#ifdef HAVE_STRUCT_TIMEX
 	int	ntp_adj_ret;	/* returned by ntp_adjtime */
+	#endif
 	double	mu;		/* interval since last update */
 	double	clock_frequency; /* clock frequency */
 	double	dtemp, etemp;	/* double temps */
@@ -485,7 +496,12 @@ local_clock(
 			    fp_offset);
 			printf("ntpd: time set %+.6fs\n", fp_offset);
 		} else {
-			adj_systime(fp_offset, adjtime);
+			#ifdef HAVE_ADJTIME
+				adj_systime(fp_offset, adjtime);
+			#else
+				/* QNX doesn't have adjtime, use step instead */
+				step_systime(fp_offset);
+			#endif
 			msyslog(LOG_NOTICE, "CLOCK: time slew %+.6f s",
 			    fp_offset);
 			printf("ntpd: time slew %+.6fs\n", fp_offset);
@@ -641,7 +657,12 @@ local_clock(
 		 * the stepout threshold.
 		 */
 		case EVNT_NSET:
-			adj_systime(fp_offset, adjtime);
+		#ifdef HAVE_ADJTIME  
+				adj_systime(fp_offset, adjtime);  
+		#else  
+				/* QNX doesn't have adjtime, use step instead */  
+				step_systime(fp_offset);  
+		#endif
 			rstclock(EVNT_FREQ, fp_offset);
 			break;
 
@@ -716,6 +737,7 @@ local_clock(
 	 * lead to overflow problems. This might occur if some misguided
 	 * lad set the step threshold to something ridiculous.
 	 */
+	#ifdef HAVE_STRUCT_TIMEX  
 	if (clock_ctl.pll_control && clock_ctl.kern_enable && freq_cnt == 0) {
 		static int kernel_status;	/* from ntp_adjtime */
 
@@ -810,6 +832,7 @@ local_clock(
 		}
 #endif /* STA_NANO */
 	}
+	#endif
 
 	/*
 	 * Clamp the frequency within the tolerance range and calculate
@@ -958,7 +981,12 @@ adj_host_clock(
 	 * but does not automatically stop slewing when an offset
 	 * has decayed to zero.
 	 */
-	adj_systime(offset_adj + freq_adj, adjtime);
+	#ifdef HAVE_ADJTIME  
+		adj_systime(offset_adj + freq_adj, adjtime);  
+	#else  
+		/* QNX doesn't have adjtime */  
+		return;  
+	#endif
 }
 
 
@@ -1024,6 +1052,7 @@ set_freq(
 
 	loop_data.drift_comp = freq;
 	loop_desc = "ntpd";
+#ifdef HAVE_STRUCT_TIMEX
 	if (clock_ctl.pll_control) {
 		int ntp_adj_ret;
 		ZERO(ntv);
@@ -1036,10 +1065,12 @@ set_freq(
 		    ntp_adjtime_error_handler(__func__, &ntv, ntp_adj_ret, errno, false, false, __LINE__ - 1);
 		}
 	}
+#endif
 	mprintf_event(EVNT_FSET, NULL, "%s %.6f PPM", loop_desc,
 	    loop_data.drift_comp * US_PER_S);
 }
 
+#ifdef HAVE_STRUCT_TIMEX 
 static void
 start_kern_loop(void)
 {
@@ -1075,7 +1106,7 @@ start_kern_loop(void)
 	  	    "kernel time sync enabled");
 	}
 }
-
+#endif
 
 static void
 stop_kern_loop(void)
@@ -1100,7 +1131,9 @@ select_loop(
 		stop_kern_loop();
 	clock_ctl.kern_enable = use_kern_loop;
 	if (clock_ctl.pll_control && use_kern_loop)
+	#ifdef HAVE_STRUCT_TIMEX
 		start_kern_loop();
+	#endif
 	/*
 	 * If this loop selection change occurs after initial startup,
 	 * call set_freq() to switch the frequency compensation to or
@@ -1158,8 +1191,9 @@ loop_config(
 	case LOOP_DRIFTINIT:
 		if (loop_data.lockclock || clock_ctl.mode_ntpdate)
 			break;
-
+	#ifdef HAVE_STRUCT_TIMEX
 		start_kern_loop();
+	#endif
 
 		/*
 		 * Initialize frequency if given; otherwise, begin frequency

@@ -5,7 +5,7 @@
 #ifndef GUARD_NTP_REFCLOCK_H
 #define GUARD_NTP_REFCLOCK_H
 
-#if defined(HAVE_SYS_MODEM_H)
+#if defined(HAVE_SYS_MODEM_H) && defined(__QNXNTO__)
 #include <sys/modem.h>
 #endif
 

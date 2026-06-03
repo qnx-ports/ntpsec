@@ -37,7 +37,9 @@ struct utsname utsnamebuf;
 
 /* Variables that need updating each time. */
 static leap_signature_t lsig;
+#ifdef HAVE_STRUCT_TIMEX
 static struct timex ntx;
+#endif
 
 /* Ugh.  timex slots are tough.  The man page says "long"
  * But the actual implementation on Linux uses something else.
@@ -382,6 +384,7 @@ static const struct var sys_var[] = {
   Var_uli("authcmacdecrypts", RO, authcmacdecrypt),
   Var_uli("authcmacfails", RO, authcmacfail),
 
+#ifdef HAVE_STRUCT_TIMEX  
 /* kerninfo: Kernel timekeeping info */
   Var_kli("koffset", RO|N_CLOCK|KNUToMS, ntx.offset),
   Var_kli("kfreq", RO|N_CLOCK|K_16, ntx.freq),
@@ -399,7 +402,7 @@ static const struct var sys_var[] = {
   Var_kli("kppscalibs", RO|N_CLOCK, ntx.calcnt),
   Var_kli("kppscaliberrs", RO|N_CLOCK, ntx.errcnt),
   Var_kli("kppsstbexc", RO|N_CLOCK, ntx.stbcnt),
-
+#endif
 
 /* refclock stuff in ntp_io */
   Var_since("iostats_reset", RO, io_timereset),
@@ -1402,7 +1405,9 @@ ctl_putarray(
  */
 static void
 ctl_putsys(const struct var * v) {
+	#ifdef HAVE_STRUCT_TIMEX 
 	static unsigned long ntp_adjtime_time;
+	#endif
 	static unsigned long ntp_leap_time;
 
 /* older compilers don't allow declarations on each case without {} */
@@ -1415,6 +1420,7 @@ ctl_putsys(const struct var * v) {
  * This could get data from 2 samples if the clock ticks while we are working..
  */
 	/* The Kernel clock variables need up-to-date output of ntp_adjtime() */
+	#ifdef HAVE_STRUCT_TIMEX 
 	if (v->flags&N_CLOCK && current_time != ntp_adjtime_time) {
 		ZERO(ntx);
 		if (ntp_adjtime(&ntx) < 0)
@@ -1422,6 +1428,7 @@ ctl_putsys(const struct var * v) {
                             "MODE6: ntp_adjtime() for mode 6 query failed: %s", strerror(errno));
                 ntp_adjtime_time = current_time;
 	}
+	#endif
 
 	/* The leap second variables need up-to-date info */
         if (v->flags&N_LEAP && current_time != ntp_leap_time) {
