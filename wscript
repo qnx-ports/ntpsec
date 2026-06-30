@@ -581,7 +581,7 @@ int main(int argc, char **argv) {
     structures = (
         ("struct if_laddrconf", ["sys/types.h", "net/if6.h"], False),
         ("struct if_laddrreq", ["sys/types.h", "net/if6.h"], False),
-        ("struct timex", ["sys/time.h", "sys/timex.h"], False),
+        ("struct timex",["sys/time.h", "sys/timex.h"],False if "nto-qnx" in ctx.env.CC[0] else True),
         ("struct ntptimeval", ["sys/time.h", "sys/timex.h"], False),
     )
     for (s, h, r) in structures:

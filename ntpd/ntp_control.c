@@ -37,7 +37,7 @@ struct utsname utsnamebuf;
 
 /* Variables that need updating each time. */
 static leap_signature_t lsig;
-#ifdef HAVE_STRUCT_TIMEX
+#ifdef HAVE_STRUCT_TIMEX 
 static struct timex ntx;
 #endif
 

@@ -318,18 +318,29 @@ decode_bitflags(
     toosmall:
 	snprintf(buf, LIB_BUFLENGTH,
 		 "decode_bitflags(%s) can't decode 0x%x in %d bytes",
-#ifdef HAVE_STRUCT_TIMEX  
+		#ifdef __QNXNTO__	 
+		#ifdef HAVE_STRUCT_TIMEX  
 		 (tab == k_st_bits)  
 		     ? "kern_st"  
 		     :  
-#endif  
+		#endif  
 		       (tab == peer_st_bits)  
 		     ? "peer_st"  
 		     :  
 		         "",  
 		 (unsigned)bits, (int)LIB_BUFLENGTH);  
-	errno = saved_errno;  
-  
+	errno = saved_errno;
+		#else
+		(tab == peer_st_bits)
+		    ? "peer_st"
+		    :
+			 (tab == k_st_bits)
+			 ? "kern_st"
+			 :
+			    "",
+		(unsigned)bits, (int)LIB_BUFLENGTH);
+	errno = saved_errno;
+		#endif
 	return buf;
 }
 
