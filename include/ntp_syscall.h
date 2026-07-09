@@ -14,7 +14,7 @@
 # include <sys/timex.h>
 #endif
 
-#ifdef HAVE_STRUCT_TIMEX 
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 extern int ntp_adjtime_ns(struct timex *);
 #else  
 extern int ntp_adjtime_ns(void *);  

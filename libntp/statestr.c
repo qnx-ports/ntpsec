@@ -189,7 +189,7 @@ static const struct codestring res_access_bits[] = {
 /*
  * kernel discipline status bits
  */
-#ifdef HAVE_STRUCT_TIMEX 
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 static const struct codestring k_st_bits[] = {
 	{ STA_PLL,			"pll" },
 	{ STA_PPSFREQ,			"ppsfreq" },
@@ -374,7 +374,7 @@ res_access_flags(
 			       COUNTOF(res_access_bits));
 }
 
-#ifdef HAVE_STRUCT_TIMEX
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 const char *
 k_st_flags(
 	uint32_t st

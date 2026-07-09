@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 #include <sys/time.h>	/* prerequisite on NetBSD */
-#ifdef HAVE_SYS_TIMEX_H
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 #include <sys/timex.h>
 #endif
 

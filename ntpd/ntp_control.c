@@ -37,7 +37,7 @@ struct utsname utsnamebuf;
 
 /* Variables that need updating each time. */
 static leap_signature_t lsig;
-#ifdef HAVE_STRUCT_TIMEX 
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 static struct timex ntx;
 #endif
 
@@ -384,7 +384,7 @@ static const struct var sys_var[] = {
   Var_uli("authcmacdecrypts", RO, authcmacdecrypt),
   Var_uli("authcmacfails", RO, authcmacfail),
 
-#ifdef HAVE_STRUCT_TIMEX  
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)  
 /* kerninfo: Kernel timekeeping info */
   Var_kli("koffset", RO|N_CLOCK|KNUToMS, ntx.offset),
   Var_kli("kfreq", RO|N_CLOCK|K_16, ntx.freq),
@@ -1405,7 +1405,7 @@ ctl_putarray(
  */
 static void
 ctl_putsys(const struct var * v) {
-	#ifdef HAVE_STRUCT_TIMEX 
+	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 	static unsigned long ntp_adjtime_time;
 	#endif
 	static unsigned long ntp_leap_time;
@@ -1420,7 +1420,7 @@ ctl_putsys(const struct var * v) {
  * This could get data from 2 samples if the clock ticks while we are working..
  */
 	/* The Kernel clock variables need up-to-date output of ntp_adjtime() */
-	#ifdef HAVE_STRUCT_TIMEX 
+	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 	if (v->flags&N_CLOCK && current_time != ntp_adjtime_time) {
 		ZERO(ntx);
 		if (ntp_adjtime(&ntx) < 0)

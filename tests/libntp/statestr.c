@@ -4,7 +4,7 @@
 #include "unity.h"
 #include "unity_fixture.h"
 
-#ifdef HAVE_STRUCT_TIMEX  
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)  
 #include <sys/timex.h>  
 #endif
 
@@ -32,7 +32,7 @@ TEST(statestr, ResAccessFlags2) {
 	TEST_ASSERT_EQUAL_STRING("noserve", res_access_flags(RES_NOSERVE));
 }
 
-#ifdef HAVE_STRUCT_TIMEX
+#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 // k_st_flags()
 TEST(statestr, KSTFlags) {
 	TEST_ASSERT_EQUAL_STRING("ppsfreq", k_st_flags(STA_PPSFREQ));
@@ -71,7 +71,7 @@ TEST_GROUP_RUNNER(statestr) {
 	RUN_TEST_CASE(statestr, ResMatchFlags);
 	RUN_TEST_CASE(statestr, ResAccessFlags);
 	RUN_TEST_CASE(statestr, ResAccessFlags2);
-	#ifdef HAVE_STRUCT_TIMEX
+	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
 	RUN_TEST_CASE(statestr, KSTFlags);
 	#endif
 	RUN_TEST_CASE(statestr, StatusToA);
