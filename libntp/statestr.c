@@ -189,7 +189,7 @@ static const struct codestring res_access_bits[] = {
 /*
  * kernel discipline status bits
  */
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 static const struct codestring k_st_bits[] = {
 	{ STA_PLL,			"pll" },
 	{ STA_PPSFREQ,			"ppsfreq" },
@@ -318,7 +318,7 @@ decode_bitflags(
     toosmall:
 	snprintf(buf, LIB_BUFLENGTH,
 		 "decode_bitflags(%s) can't decode 0x%x in %d bytes",
-		#ifdef __QNXNTO__	 
+		#ifdef __QNX__	 
 		#ifdef HAVE_STRUCT_TIMEX  
 		 (tab == k_st_bits)  
 		     ? "kern_st"  
@@ -374,7 +374,7 @@ res_access_flags(
 			       COUNTOF(res_access_bits));
 }
 
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 const char *
 k_st_flags(
 	uint32_t st

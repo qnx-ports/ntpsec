@@ -131,14 +131,14 @@ static void set_freq(double);	/* set frequency */
 static char relative_path[PATH_MAX + 1]; /* relative path per recursive make */
 static char *this_file = NULL;
 
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 static struct timex ntv;	/* ntp_adjtime() parameters */
 static int	pll_status;	/* last kernel status bits */
 #endif
 #if defined(STA_NANO) && defined(NTP_API) && NTP_API == 4
 static unsigned int loop_tai;	/* last TAI offset (non-lockclock case only) */
 #endif /* STA_NANO */
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)  
+#ifndef __QNX__ 
 static	void	start_kern_loop(void);
 static	void	stop_kern_loop(void);
 #endif
@@ -158,7 +158,7 @@ struct clock_control_flags clock_ctl = {
 int	freq_cnt;		/* initial frequency clamp */
 
 static int freq_set;		/* initial set frequency switch */
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 static bool	ext_enable;	/* external clock enabled */
 #endif
 
@@ -178,7 +178,7 @@ static int sys_hufflen;		/* huff-n'-puff filter stages */
 static int sys_huffptr;		/* huff-n'-puff filter pointer */
 static double sys_mindly;	/* huff-n'-puff filter min delay */
 
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 /* Emacs cc-mode goes nuts if we split the next line... */
 #define MOD_BITS (MOD_OFFSET | MOD_MAXERROR | MOD_ESTERROR | \
     MOD_STATUS | MOD_TIMECONST)
@@ -224,7 +224,7 @@ init_loopfilter(void) {
 /*
  * ntp_adjtime_error_handler - process errors from ntp_adjtime
  */
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 static void
 ntp_adjtime_error_handler(
 	const char *caller,	/* name of calling function */
@@ -453,7 +453,7 @@ local_clock(
 
 	int	rval;		/* return code */
 	int	osys_poll;	/* old system poll */
-	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+	#ifndef __QNX__
 	int	ntp_adj_ret;	/* returned by ntp_adjtime */
 	#endif
 	double	mu;		/* interval since last update */
@@ -496,7 +496,7 @@ local_clock(
 			    fp_offset);
 			printf("ntpd: time set %+.6fs\n", fp_offset);
 		} else {
-			#if defined(HAVE_ADJTIME) && !defined(__QNXNTO__)
+			#ifndef __QNX__
 				adj_systime(fp_offset, adjtime);
 			#else
 				/* QNX doesn't have adjtime, use step instead */
@@ -657,11 +657,10 @@ local_clock(
 		 * the stepout threshold.
 		 */
 		case EVNT_NSET:
-		#if defined(HAVE_ADJTIME) && !defined(__QNXNTO__) 
-				adj_systime(fp_offset, adjtime);  
-		#else  
-				/* QNX doesn't have adjtime, use step instead */  
-				step_systime(fp_offset);  
+		#ifdef __QNX__
+				step_systime(fp_offset);
+		#else   
+				adj_systime(fp_offset, adjtime);
 		#endif
 			rstclock(EVNT_FREQ, fp_offset);
 			break;
@@ -737,7 +736,7 @@ local_clock(
 	 * lead to overflow problems. This might occur if some misguided
 	 * lad set the step threshold to something ridiculous.
 	 */
-	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)  
+	#ifndef __QNX__
 	if (clock_ctl.pll_control && clock_ctl.kern_enable && freq_cnt == 0) {
 		static int kernel_status;	/* from ntp_adjtime */
 
@@ -981,7 +980,7 @@ adj_host_clock(
 	 * but does not automatically stop slewing when an offset
 	 * has decayed to zero.
 	 */
-	#if defined(HAVE_ADJTIME) && !defined(__QNXNTO__)  
+	#ifndef __QNX__ 
 		adj_systime(offset_adj + freq_adj, adjtime);  
 	#else  
 		/* QNX doesn't have adjtime */  
@@ -1052,7 +1051,7 @@ set_freq(
 
 	loop_data.drift_comp = freq;
 	loop_desc = "ntpd";
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 	if (clock_ctl.pll_control) {
 		int ntp_adj_ret;
 		ZERO(ntv);
@@ -1070,7 +1069,7 @@ set_freq(
 	    loop_data.drift_comp * US_PER_S);
 }
 
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__) 
+#ifndef __QNX__
 static void
 start_kern_loop(void)
 {
@@ -1131,7 +1130,7 @@ select_loop(
 		stop_kern_loop();
 	clock_ctl.kern_enable = use_kern_loop;
 	if (clock_ctl.pll_control && use_kern_loop)
-	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+	#ifndef __QNX__
 		start_kern_loop();
 	#endif
 	/*
@@ -1191,7 +1190,7 @@ loop_config(
 	case LOOP_DRIFTINIT:
 		if (loop_data.lockclock || clock_ctl.mode_ntpdate)
 			break;
-	#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+	#ifndef __QNX__
 		start_kern_loop();
 	#endif
 

@@ -10,11 +10,11 @@
 #define GUARD_NTP_SYSCALL_H
 
 # include <sys/time.h>	/* prerequisite on NetBSD */
-#ifndef __QNXNTO__
+#ifndef __QNX__
 # include <sys/timex.h>
 #endif
 
-#if defined(HAVE_STRUCT_TIMEX) && !defined(__QNXNTO__)
+#ifndef __QNX__
 extern int ntp_adjtime_ns(struct timex *);
 #else  
 extern int ntp_adjtime_ns(void *);  
