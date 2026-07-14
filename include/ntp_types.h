@@ -47,8 +47,9 @@ typedef uint32_t uptime_t;	/* seconds since startup */
  * We now assume the platform supports a 64-bit scalar type (the ISC
  * library wouldn't compile otherwise).
  */
-
+#ifndef __QNX__
 typedef uint64_t time64_t;
+#endif
 #define LOW32MASK	0x00000000ffffffffUL
 #define HIGH32MASK	0xffffffff00000000UL
 #define time64lo(n)	((uint32_t)((n) & LOW32MASK))

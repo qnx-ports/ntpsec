@@ -4,7 +4,9 @@
 #include "unity.h"
 #include "unity_fixture.h"
 
-#include <sys/timex.h>
+#ifndef __QNX__
+#include <sys/timex.h>  
+#endif
 
 TEST_GROUP(statestr);
 
@@ -30,10 +32,12 @@ TEST(statestr, ResAccessFlags2) {
 	TEST_ASSERT_EQUAL_STRING("noserve", res_access_flags(RES_NOSERVE));
 }
 
+#ifndef __QNX__
 // k_st_flags()
 TEST(statestr, KSTFlags) {
 	TEST_ASSERT_EQUAL_STRING("ppsfreq", k_st_flags(STA_PPSFREQ));
 }
+#endif
 
 // statustoa
 TEST(statestr, StatusToA) {
@@ -67,7 +71,9 @@ TEST_GROUP_RUNNER(statestr) {
 	RUN_TEST_CASE(statestr, ResMatchFlags);
 	RUN_TEST_CASE(statestr, ResAccessFlags);
 	RUN_TEST_CASE(statestr, ResAccessFlags2);
+	#ifndef __QNX__
 	RUN_TEST_CASE(statestr, KSTFlags);
+	#endif
 	RUN_TEST_CASE(statestr, StatusToA);
 	RUN_TEST_CASE(statestr, PeerRestart);
 	RUN_TEST_CASE(statestr, SysUnspecified);

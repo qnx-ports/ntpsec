@@ -6,7 +6,9 @@
 
 #include <unistd.h>
 #include <sys/time.h>	/* prerequisite on NetBSD */
+#ifndef __QNX__
 #include <sys/timex.h>
+#endif
 
 #include "ntp.h"
 #include "ntp_machine.h"

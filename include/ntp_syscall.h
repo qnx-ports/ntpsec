@@ -10,8 +10,15 @@
 #define GUARD_NTP_SYSCALL_H
 
 # include <sys/time.h>	/* prerequisite on NetBSD */
+#ifndef __QNX__
 # include <sys/timex.h>
+#endif
+
+#ifndef __QNX__
 extern int ntp_adjtime_ns(struct timex *);
+#else  
+extern int ntp_adjtime_ns(void *);  
+#endif
 
 /*
  * The units of the maxerror and esterror fields vary by platform.  If

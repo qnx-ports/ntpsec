@@ -189,6 +189,7 @@ static const struct codestring res_access_bits[] = {
 /*
  * kernel discipline status bits
  */
+#ifndef __QNX__
 static const struct codestring k_st_bits[] = {
 	{ STA_PLL,			"pll" },
 	{ STA_PPSFREQ,			"ppsfreq" },
@@ -214,6 +215,7 @@ static const struct codestring k_st_bits[] = {
 # endif
 	/* not used with getcode(), no terminating entry needed */
 };
+#endif
 
 /* Forwards */
 static const char *	getcode(int, const struct codestring *);
@@ -315,17 +317,23 @@ decode_bitflags(
 
     toosmall:
 	snprintf(buf, LIB_BUFLENGTH,
-		 "decode_bitflags(%s) can't decode 0x%x in %d bytes",
-		 (tab == peer_st_bits)
-		     ? "peer_st"
-		     :
-		       (tab == k_st_bits)
-			   ? "kern_st"
-			   :
-			     "",
-		 (unsigned)bits, (int)LIB_BUFLENGTH);
+		"decode_bitflags(%s) can't decode 0x%x in %d bytes",
+		#ifdef __QNX__	 
+		    (tab == peer_st_bits)  
+				? "peer_st"  
+		     	: "",  
+		#else
+		(tab == peer_st_bits)
+		    ? "peer_st"
+		    :
+			 (tab == k_st_bits)
+			 ? "kern_st"
+			 :
+			   "",
+		#endif
+		(unsigned)bits, (int)LIB_BUFLENGTH);
 	errno = saved_errno;
-
+	
 	return buf;
 }
 
@@ -359,14 +367,18 @@ res_access_flags(
 			       COUNTOF(res_access_bits));
 }
 
-
 const char *
 k_st_flags(
 	uint32_t st
 	)
 {
+#ifndef __QNX__
 	return decode_bitflags((int)st, " ", k_st_bits, COUNTOF(k_st_bits));
-}
+#else 
+	(void)st;
+	return "kernel-unavailable";  
+#endif
+}  
 
 /*
  * statustoa - return a descriptive string for a peer status

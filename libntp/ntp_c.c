@@ -90,7 +90,12 @@ ntpc_lfptofloat(char *s)
 bool
 ntpc_adj_systime(double adjustment)
 {
+	#ifndef __QNX__
 	return adj_systime(adjustment, adjtime) ? 1 : 0;
+	#else  
+    (void)adjustment; /* suppress unused warning */  
+    return -1; /* indicate not supported */  
+	#endif
 }
 
 bool
