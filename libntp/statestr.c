@@ -317,19 +317,11 @@ decode_bitflags(
 
     toosmall:
 	snprintf(buf, LIB_BUFLENGTH,
-		 "decode_bitflags(%s) can't decode 0x%x in %d bytes",
+		"decode_bitflags(%s) can't decode 0x%x in %d bytes",
 		#ifdef __QNX__	 
-		#ifdef HAVE_STRUCT_TIMEX  
-		 (tab == k_st_bits)  
-		     ? "kern_st"  
-		     :  
-		#endif  
-		       (tab == peer_st_bits)  
-		     ? "peer_st"  
-		     :  
-		         "",  
-		 (unsigned)bits, (int)LIB_BUFLENGTH);  
-	errno = saved_errno;
+		    (tab == peer_st_bits)  
+				? "peer_st"  
+		     	: "",  
 		#else
 		(tab == peer_st_bits)
 		    ? "peer_st"
@@ -337,10 +329,11 @@ decode_bitflags(
 			 (tab == k_st_bits)
 			 ? "kern_st"
 			 :
-			    "",
+			   "",
+		#endif
 		(unsigned)bits, (int)LIB_BUFLENGTH);
 	errno = saved_errno;
-		#endif
+	
 	return buf;
 }
 
@@ -374,24 +367,18 @@ res_access_flags(
 			       COUNTOF(res_access_bits));
 }
 
-#ifndef __QNX__
 const char *
 k_st_flags(
 	uint32_t st
 	)
 {
+#ifndef __QNX__
 	return decode_bitflags((int)st, " ", k_st_bits, COUNTOF(k_st_bits));
-}
-#else  
-const char *  
-k_st_flags(  
-	uint32_t st  
-	)  
-{  
+#else 
 	(void)st;
 	return "kernel-unavailable";  
-}  
 #endif
+}  
 
 /*
  * statustoa - return a descriptive string for a peer status

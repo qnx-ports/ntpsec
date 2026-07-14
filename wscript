@@ -251,7 +251,7 @@ def configure(ctx):
 
     # These are required by various refclocks
     # needs to be tested before CFLAGS are set
-    if "nto-qnx" in ctx.env.CC[0]:
+    if "qnx" in ctx.env.CC[0]:
         ctx.msg("Checking for endianness", "little endian (QNX forced)")
         ctx.define("WORDS_BIGENDIAN", 0)
     elif ctx.check_endianness() == "big":
@@ -581,7 +581,7 @@ int main(int argc, char **argv) {
     structures = (
         ("struct if_laddrconf", ["sys/types.h", "net/if6.h"], False),
         ("struct if_laddrreq", ["sys/types.h", "net/if6.h"], False),
-        ("struct timex",["sys/time.h", "sys/timex.h"],False if "nto-qnx" in ctx.env.CC[0] else True),
+        ("struct timex",["sys/time.h", "sys/timex.h"],False if "qnx" in ctx.env.CC[0] else True),
         ("struct ntptimeval", ["sys/time.h", "sys/timex.h"], False),
     )
     for (s, h, r) in structures:
@@ -618,7 +618,7 @@ int main(int argc, char **argv) {
     ]
     # QNX cross-compilation cannot execute probe binaries.
     # Force known datatype sizes.
-    if "nto-qnx" in ctx.env.CC[0]:
+    if "qnx" in ctx.env.CC[0]:
         ctx.define("NTP_SIZEOF_LONG", 8)
         ctx.define("NTP_SIZEOF_TIME_T", 8)
         ctx.define("NTP_SIZEOF_STRUCT_TIMESPEC", 16)
@@ -753,7 +753,8 @@ int main(int argc, char **argv) {
         if os.path.exists("/usr/include/" + hdr):
             # Sanity check...
             print("Compilation check failed but include exists %s" % hdr)
-
+    if ctx.options.cross_compiler and "qnx" in ctx.options.cross_compiler.lower():  
+        ctx.undefine("HAVE_SYS_MODEM_H") 
     if ((ctx.get_define("HAVE_TIMEPPS_H") or
             ctx.get_define("HAVE_SYS_TIMEPPS_H"))):
         ctx.define("HAVE_PPSAPI", 1, comment="Enable the PPS API")

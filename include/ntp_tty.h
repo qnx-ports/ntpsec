@@ -12,7 +12,7 @@
 
 #include <termios.h>
 
-#if defined(HAVE_SYS_MODEM_H) && defined (__QNX__)
+#if defined(HAVE_SYS_MODEM_H)
 #include <sys/modem.h>
 #endif
 
