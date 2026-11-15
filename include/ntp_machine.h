@@ -22,6 +22,13 @@ typedef int clockid_t;
 int clock_gettime(clockid_t clock_id, struct timespec *tp);
 #endif
 
+#ifdef __QNX__
+/* QNX <time.h> has its own, signed, time64_t; ntp_types.h defines an unsigned one. */
+#define time64_t ntp_time64_t
+/* QNX has no adjtime(); libntp/adjtime_qnx.c implements it with ClockAdjust(). */
+int adjtime(const struct timeval *, struct timeval *);
+#endif
+
 int ntp_set_tod (struct timespec *tvs);
 
 #endif	/* GUARD_NTP_MACHINE_H */

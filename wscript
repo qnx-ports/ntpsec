@@ -507,6 +507,9 @@ int main(int argc, char **argv) {
         # OS X needs this for IPv6
         ctx.define("__APPLE_USE_RFC_3542", 1,
                    comment="Needed for IPv6 support")
+    elif ctx.env.DEST_OS == "qnx":
+        # QNX has no kernel clock discipline: see include/qnx/sys/timex.h
+        ctx.env.INCLUDES = [ctx.path.find_dir("include/qnx").abspath()]
     elif ctx.env.DEST_OS == "sunos":
         # Declare compatibility with the POSIX.1-2001 standard, and any
         # headers/interfaces not in conflict with that standard
@@ -726,7 +729,8 @@ int main(int argc, char **argv) {
                  uselib_store="SCF")
 
     # Some systems don't have sys/timex.h eg OS X, OpenBSD...
-    if ctx.get_define("HAVE_SYS_TIMEX_H"):
+    # On QNX it is the stand-in from include/qnx, with no kernel PLL behind it.
+    if ctx.get_define("HAVE_SYS_TIMEX_H") and ctx.env.DEST_OS != "qnx":
         ctx.env.HEADER_SYS_TIMEX_H = True
 
     if ctx.options.refclocks:
@@ -822,10 +826,14 @@ int main(int argc, char **argv) {
         ctx.check_cc(header_name="dns_sd.h", lib="dns_sd", mandatory=False,
                      uselib_store="DNS_SD")
 
-    # Solaris needs -lsocket and -lnsl for socket code
-    if ctx.env.DEST_OS == "sunos":
+    # Solaris needs -lsocket and -lnsl for socket code, QNX needs -lsocket
+    if ctx.env.DEST_OS in ["sunos", "qnx"]:
         ctx.check(features="c cshlib", lib="socket", mandatory=False)
         ctx.check(features="c cshlib", lib="nsl", mandatory=False)
+    # QNX has SysV shared memory (the SHM refclock) in its own library
+    if ctx.env.DEST_OS == "qnx":
+        ctx.check(features="c cshlib", lib="sysv-ipc", uselib_store="SOCKET",
+                  mandatory=False)
 
     if ctx.options.enable_classic_mode:
         ctx.define("ENABLE_CLASSIC_MODE", 1)

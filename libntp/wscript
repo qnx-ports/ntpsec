@@ -45,6 +45,9 @@ def build(ctx):
         "timespecops.c",
     ]
 
+    if ctx.env.DEST_OS == "qnx":
+        libntp_source_sharable += ["adjtime_qnx.c"]
+
     if not ctx.env.HAVE_STRLCAT or not ctx.env.HAVE_STRLCPY:
         libntp_source_sharable += ["strl_obsd.c"]
 
