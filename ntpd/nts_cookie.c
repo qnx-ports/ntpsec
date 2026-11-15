@@ -206,7 +206,9 @@ bool nts_read_cookie_keys(void) {
 		}
 		key->K[j] = temp;
 	  }
-	  if (0 != fscanf(in, "\n")) {
+	  /* EOF after the last key is not an error; some libcs return it here */
+	  int nl = fscanf(in, "\n");
+	  if (0 != nl && EOF != nl) {
 		goto bail;
 	  }
 	  nts_nKeys = i+1;
