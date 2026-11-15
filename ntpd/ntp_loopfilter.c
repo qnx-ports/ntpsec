@@ -1054,7 +1054,12 @@ start_kern_loop(void)
 	ntv.esterror = sys_maxdisp * 1e6;
 	ntv.constant = clkstate.sys_poll;
 	if ((ntp_adj_ret = ntp_adjtime_ns(&ntv)) != 0) {
-	    ntp_adjtime_error_handler(__func__, &ntv, ntp_adj_ret, errno, false, false, __LINE__ - 1);
+	    if (-1 == ntp_adj_ret && ENOSYS == errno) {
+		/* No kernel discipline: the daemon loop slews with adjtime() */
+		clock_ctl.pll_control = false;
+	    } else {
+		ntp_adjtime_error_handler(__func__, &ntv, ntp_adj_ret, errno, false, false, __LINE__ - 1);
+	    }
 	}
 
 	/*
